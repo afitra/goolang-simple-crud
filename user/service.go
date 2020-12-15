@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,6 +17,7 @@ type Service interface {
 	GetUserByID(input int) (User, error)
 	GetAllUser() ([]User, error)
 	SaveProfile(id int, fileLocation string) (User, error)
+	UpdateUser(inputID GetUserDetailByID, inputData RegisterUserInput, sessionID int) (User, error)
 }
 
 func NewService(repository Repository) *service {
@@ -98,4 +100,38 @@ func (s *service) SaveProfile(id int, fileLocation string) (User, error) {
 	}
 
 	return updateUser, nil
+}
+
+func (s *service) UpdateUser(inputID GetUserDetailByID, inputData RegisterUserInput, sessionID int) (User, error) {
+
+	user, err := s.repository.FindByID(inputID.ID)
+	if err != nil {
+
+		return user, err
+
+	}
+
+	if inputID.ID != sessionID {
+		fmt.Println("iniiiii dia")
+		return user, errors.New("you bukan pemilik user")
+
+	}
+
+	user.Username = inputData.Username
+
+	user.Nama_Lengkap = inputData.Nama_Lengkap
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(inputData.Password), bcrypt.MinCost)
+	if err != nil {
+		return user, err
+	}
+	user.Password = string(hash)
+
+	updateUser, err := s.repository.Update(user)
+
+	if err != nil {
+		return updateUser, err
+	}
+	return updateUser, nil
+
 }

@@ -46,6 +46,7 @@ func main() {
 	apiUser.POST("/login", userHandler.Login)
 	apiUser.GET("/detail", authMiddlewere(authService, userService), userHandler.GetUserByID)
 	apiUser.POST("/profile", authMiddlewere(authService, userService), userHandler.UploadProfile)
+	apiUser.PUT("/:id", authMiddlewere(authService, userService), userHandler.UpdateUser)
 	PORT := helper.GoDotEnvVariable("PORT")
 
 	router.Run(fmt.Sprintf(":%s", PORT))
