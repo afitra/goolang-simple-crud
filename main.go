@@ -40,7 +40,7 @@ func main() {
 	apiUser := router.Group("/api/v1/users")
 
 	apiUser.POST("/register", userHandler.RegisterUser)
-
+	apiUser.POST("/login", userHandler.Login)
 	PORT := helper.GoDotEnvVariable("PORT")
 
 	router.Run(fmt.Sprintf(":%s", PORT))
