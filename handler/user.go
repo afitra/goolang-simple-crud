@@ -217,3 +217,32 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 
 }
+
+func (h *userHandler) DeleteUser(c *gin.Context) {
+
+	var inputID user.GetUserDetailByID
+	err := c.ShouldBindUri(&inputID)
+
+	if err != nil {
+		response := helper.ApiResponse("Failed to delete User", http.StatusBadRequest, "error", nil)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	userID := currentUser.ID
+
+	deleteUser, err := h.userService.DeleteUser(inputID, userID)
+
+	if err != nil {
+
+		response := helper.ApiResponse("Failed to delete User", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	response := helper.ApiResponse("Succes to delete  User", http.StatusOK, "success", user.FormatOneUser(deleteUser, ""))
+	c.JSON(http.StatusOK, response)
+
+}

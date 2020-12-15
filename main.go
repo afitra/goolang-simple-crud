@@ -47,6 +47,7 @@ func main() {
 	apiUser.GET("/detail", authMiddlewere(authService, userService), userHandler.GetUserByID)
 	apiUser.POST("/profile", authMiddlewere(authService, userService), userHandler.UploadProfile)
 	apiUser.PUT("/:id", authMiddlewere(authService, userService), userHandler.UpdateUser)
+	apiUser.DELETE("/:id", authMiddlewere(authService, userService), userHandler.DeleteUser)
 	PORT := helper.GoDotEnvVariable("PORT")
 
 	router.Run(fmt.Sprintf(":%s", PORT))

@@ -9,6 +9,7 @@ type Repository interface {
 	UpdateUser(user User) (User, error)
 	GetAllUser() ([]User, error)
 	Update(user User) (User, error)
+	Delete(user User) (User, error)
 }
 
 type repository struct {
@@ -82,4 +83,15 @@ func (r *repository) Update(user User) (User, error) {
 	}
 	return user, nil
 
+}
+
+func (r *repository) Delete(user User) (User, error) {
+
+	err := r.db.Delete(&User{}, user.ID).Error
+
+	if err != nil {
+
+		return user, err
+	}
+	return user, nil
 }
