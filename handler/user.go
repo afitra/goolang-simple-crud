@@ -108,7 +108,7 @@ func (h *userHandler) Login(c *gin.Context) {
 }
 
 func (h *userHandler) GetUserByID(c *gin.Context) {
-	fmt.Println("masokkkkkkk")
+
 	currentUser := c.MustGet("currentUser").(user.User)
 	userID := currentUser.ID
 
@@ -135,29 +135,8 @@ func (h *userHandler) GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *userHandler) GetAllUser(c *gin.Context) {
-
-	// currentUser := c.MustGet("currentUser").(user.User)
-	// userID := currentUser.ID
-
-	allUser, err := h.userService.GetAllUser()
-
-	if err != nil {
-
-		response := helper.ApiResponse("failed to get user's transactions", http.StatusBadRequest, "error", err)
-
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
-
-	response := helper.ApiResponse("User's transactions", http.StatusOK, "success", user.FormatUsers(allUser))
-
-	c.JSON(http.StatusBadRequest, response)
-
-}
-
 func (h *userHandler) UploadProfile(c *gin.Context) {
-	fmt.Println("masokkkkkkkkk  000000")
+
 	file, err := c.FormFile("foto")
 
 	if err != nil {
@@ -172,11 +151,11 @@ func (h *userHandler) UploadProfile(c *gin.Context) {
 	currentTime := time.Now()
 
 	// path := "images/" + + currentTime.Format("2006#01#02") + "#" + file.Filename
-	fmt.Println("masokkkkkkkkk  111")
+
 	path := fmt.Sprintf("profile/%d-%s-%s", userID, currentTime.Format("2006-01-02-3:4:5"), file.Filename)
 	_, err = h.userService.SaveProfile(userID, path)
 	err = c.SaveUploadedFile(file, path)
-	fmt.Println("masokkkkkkkkk  222")
+
 	if err != nil {
 		data := gin.H{"is_uploaded": false}
 		response := helper.ApiResponse("failed to upload Foto image", http.StatusBadRequest, "error", data)
@@ -194,6 +173,47 @@ func (h *userHandler) UploadProfile(c *gin.Context) {
 
 	data := gin.H{"is_uploaded": true}
 	response := helper.ApiResponse("Foto successfully uploaded", http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+
+}
+
+func (h *userHandler) UpdateUser(c *gin.Context) {
+	var inputID user.GetUserDetailByID
+	err := c.ShouldBindUri(&inputID)
+
+	if err != nil {
+		response := helper.ApiResponse("Failed to update User", http.StatusBadRequest, "error", nil)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	currentUser := c.MustGet("currentUser").(user.User)
+	userID := currentUser.ID
+
+	var inputData user.RegisterUserInput
+	err = c.ShouldBindJSON(&inputData)
+
+	if err != nil {
+
+		errors := helper.FormatValidationError(err)
+
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.ApiResponse("Failed to update User", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+
+	}
+	updatedUser, err := h.userService.UpdateUser(inputID, inputData, userID)
+
+	if err != nil {
+
+		response := helper.ApiResponse("Failed to update User", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	response := helper.ApiResponse("Succes to update  User", http.StatusOK, "success", user.FormatOneUser(updatedUser, ""))
 	c.JSON(http.StatusOK, response)
 
 }

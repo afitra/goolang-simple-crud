@@ -8,6 +8,7 @@ type Repository interface {
 	FindByID(ID int) (User, error)
 	UpdateUser(user User) (User, error)
 	GetAllUser() ([]User, error)
+	Update(user User) (User, error)
 }
 
 type repository struct {
@@ -69,4 +70,16 @@ func (r *repository) GetAllUser() ([]User, error) {
 		return allUser, err
 	}
 	return allUser, nil
+}
+
+func (r *repository) Update(user User) (User, error) {
+
+	err := r.db.Save(&user).Error
+
+	if err != nil {
+
+		return user, err
+	}
+	return user, nil
+
 }
