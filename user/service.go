@@ -7,12 +7,15 @@ import (
 )
 
 type service struct {
-	repository Repository // repo yg hutruf kecil itu variable punya service sendiri bukan punya Repository
+	repository Repository
 }
 
 type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	Login(input LoginInput) (User, error)
+	GetUserByID(input int) (User, error)
+	GetAllUser() ([]User, error)
+	SaveProfile(id int, fileLocation string) (User, error)
 }
 
 func NewService(repository Repository) *service {
@@ -57,4 +60,42 @@ func (s *service) Login(input LoginInput) (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+func (s *service) GetUserByID(input int) (User, error) {
+	user, err := s.repository.FindByID(input)
+
+	if err != nil {
+
+		return user, err
+	}
+	return user, nil
+}
+
+func (s *service) GetAllUser() ([]User, error) {
+	user, err := s.repository.GetAllUser()
+
+	if err != nil {
+
+		return user, err
+	}
+	return user, nil
+}
+
+func (s *service) SaveProfile(id int, fileLocation string) (User, error) {
+
+	user, err := s.repository.FindByID(id)
+	if err != nil {
+
+		return user, err
+	}
+
+	user.Foto = fileLocation
+	updateUser, err := s.repository.UpdateUser(user)
+	if err != nil {
+
+		return updateUser, err
+	}
+
+	return updateUser, nil
 }

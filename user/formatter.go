@@ -9,7 +9,7 @@ type UserFormatter struct {
 	Token        string `json:"token"`
 }
 
-func FormatUser(user User, token string) UserFormatter {
+func userFormatter(user User, token string) UserFormatter {
 
 	formatter := UserFormatter{
 		ID:           user.ID,
@@ -20,4 +20,21 @@ func FormatUser(user User, token string) UserFormatter {
 		Foto:         user.Foto,
 	}
 	return formatter
+}
+
+func FormatUsers(users []User) []UserFormatter {
+
+	allFormatter := []UserFormatter{}
+	for _, user := range users {
+		token := ""
+		data := userFormatter(user, token)
+
+		allFormatter = append(allFormatter, data)
+	}
+
+	return allFormatter
+}
+
+func FormatOneUser(user User, token string) UserFormatter {
+	return userFormatter(user, token)
 }

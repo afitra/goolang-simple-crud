@@ -5,8 +5,9 @@ import "gorm.io/gorm"
 type Repository interface {
 	Save(user User) (User, error)
 	FindByUserName(username string) (User, error)
-	FindById(ID int) (User, error)
+	FindByID(ID int) (User, error)
 	UpdateUser(user User) (User, error)
+	GetAllUser() ([]User, error)
 }
 
 type repository struct {
@@ -38,7 +39,7 @@ func (r *repository) FindByUserName(username string) (User, error) {
 
 }
 
-func (r *repository) FindById(ID int) (User, error) {
+func (r *repository) FindByID(ID int) (User, error) {
 
 	var user User
 
@@ -58,4 +59,14 @@ func (r *repository) UpdateUser(user User) (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+func (r *repository) GetAllUser() ([]User, error) {
+
+	var allUser []User
+	err := r.db.Find(&allUser).Error
+	if err != nil {
+		return allUser, err
+	}
+	return allUser, nil
 }

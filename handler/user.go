@@ -6,6 +6,7 @@ import (
 	"simpleCrudGolang/auth"
 	"simpleCrudGolang/helper"
 	"simpleCrudGolang/user"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,6 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&input)
 
-	fmt.Println(">>>>> 1111")
 	if err != nil {
 
 		errors := helper.FormatValidationError(err)
@@ -36,7 +36,7 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 	newUser, err := h.userService.RegisterUser(input)
-	fmt.Println(">>>>> 222222")
+
 	if err != nil {
 		response := helper.ApiResponse("Register Account failed", http.StatusBadRequest, "error", nil)
 
@@ -52,13 +52,12 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
-	formatter := user.FormatUser(newUser, token)
+	formatter := user.FormatOneUser(newUser, token)
 
 	response := helper.ApiResponse("Account has been registered", http.StatusOK, "success", formatter)
 
 	c.JSON(http.StatusOK, response)
 }
-
 
 func (h *userHandler) Login(c *gin.Context) {
 	// 1. user memasukan email dan password
@@ -100,10 +99,101 @@ func (h *userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	formatter := user.FormatUser(loggedInUser, token)
+	formatter := user.FormatOneUser(loggedInUser, token)
 
 	response := helper.ApiResponse("Login successfull", http.StatusOK, "success", formatter)
 
+	c.JSON(http.StatusOK, response)
+
+}
+
+func (h *userHandler) GetUserByID(c *gin.Context) {
+	fmt.Println("masokkkkkkk")
+	currentUser := c.MustGet("currentUser").(user.User)
+	userID := currentUser.ID
+
+	userDetail, err := h.userService.GetUserByID(userID)
+
+	if userDetail.ID == 0 {
+
+		errorMessage := gin.H{"errors": "Failed to get user id"}
+
+		response := helper.ApiResponse("Failed to get user id", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	if err != nil {
+		response := helper.ApiResponse("Error to get detail user", http.StatusBadRequest, "error", nil)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+
+	}
+
+	response := helper.ApiResponse("user detail", http.StatusOK, "success", user.FormatOneUser(userDetail, ""))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *userHandler) GetAllUser(c *gin.Context) {
+
+	// currentUser := c.MustGet("currentUser").(user.User)
+	// userID := currentUser.ID
+
+	allUser, err := h.userService.GetAllUser()
+
+	if err != nil {
+
+		response := helper.ApiResponse("failed to get user's transactions", http.StatusBadRequest, "error", err)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.ApiResponse("User's transactions", http.StatusOK, "success", user.FormatUsers(allUser))
+
+	c.JSON(http.StatusBadRequest, response)
+
+}
+
+func (h *userHandler) UploadProfile(c *gin.Context) {
+	fmt.Println("masokkkkkkkkk  000000")
+	file, err := c.FormFile("foto")
+
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.ApiResponse("failed to upload Foto image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	//  next pakat jwt bukan
+	currentUser := c.MustGet("currentUser").(user.User)
+	userID := currentUser.ID
+	currentTime := time.Now()
+
+	// path := "images/" + + currentTime.Format("2006#01#02") + "#" + file.Filename
+	fmt.Println("masokkkkkkkkk  111")
+	path := fmt.Sprintf("profile/%d-%s-%s", userID, currentTime.Format("2006-01-02-3:4:5"), file.Filename)
+	_, err = h.userService.SaveProfile(userID, path)
+	err = c.SaveUploadedFile(file, path)
+	fmt.Println("masokkkkkkkkk  222")
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.ApiResponse("failed to upload Foto image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	_, err = h.userService.SaveProfile(userID, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.ApiResponse("failed to upload Foto image", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	data := gin.H{"is_uploaded": true}
+	response := helper.ApiResponse("Foto successfully uploaded", http.StatusOK, "success", data)
 	c.JSON(http.StatusOK, response)
 
 }
